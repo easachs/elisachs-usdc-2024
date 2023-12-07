@@ -1,36 +1,47 @@
-/** 
- * RECOMMENDATION
- * 
- * To test your code, you should open "tester.html" in a web browser.
- * You can then use the "Developer Tools" to see the JavaScript console.
- * There, you will see the results unit test execution. You are welcome
- * to run the code any way you like, but this is similar to how we will
- * run your code submission.
- * 
- * The Developer Tools in Chrome are available under the "..." menu, 
- * futher hidden under the option "More Tools." In Firefox, they are 
- * under the hamburger (three horizontal lines), also hidden under "More Tools." 
- */
+// BookSearch function
+function findSearchTermInBooks(searchTerm, scannedTextObj, caseSensitive = true) {
+    // Check for valid searchTerm
+    if (typeof searchTerm !== "string" || searchTerm === "") {
+        return "Bad search term";
+    };
 
-/**
- * Searches for matches in scanned text.
- * @param {string} searchTerm - The word or term we're searching for. 
- * @param {JSON} scannedTextObj - A JSON object representing the scanned text.
- * @returns {JSON} - Search results.
- * */ 
- function findSearchTermInBooks(searchTerm, scannedTextObj) {
-    /** You will need to implement your search and 
-     * return the appropriate object here. */
+    // Check for valid scannedTextObj
+    if (!Array.isArray(scannedTextObj) || !scannedTextObj.every(isValidBook)) {
+        return "Bad text object";
+    };
 
+    // Construct result object
     var result = {
-        "SearchTerm": "",
+        "SearchTerm": searchTerm,
         "Results": []
     };
+
+    scannedTextObj.forEach(book => { // Iterate through each book
+        book.Content.forEach(content => { // Iterate through book's contents
+            // Check case sensitivity
+            var casedSearch = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+            var casedText = caseSensitive ? content.Text : content.Text.toLowerCase();
+
+            if(casedText.includes(casedSearch)){ // Check for search term
+                result.Results.push({ // Add matching results
+                    "ISBN": book.ISBN,
+                    "Page": content.Page,
+                    "Line": content.Line
+                });
+            };
+        });
+    });
     
-    return result; 
+    return result;
 }
 
-/** Example input object. */
+function isValidBook(book) {
+    return typeof book === "object" && book.Content &&
+           Array.isArray(book.Content) &&
+           book.Content.every(content => typeof content.Text === "string");
+}
+
+// Example input
 const twentyLeaguesIn = [
     {
         "Title": "Twenty Thousand Leagues Under the Sea",
@@ -54,51 +65,194 @@ const twentyLeaguesIn = [
         ] 
     }
 ]
-    
-/** Example output object */
-const twentyLeaguesOut = {
-    "SearchTerm": "the",
-    "Results": [
-        {
-            "ISBN": "9780000528531",
-            "Page": 31,
-            "Line": 9
-        }
-    ]
+
+// UNIT TESTS
+
+function constructResults(searchTerm, lines) {
+    // ex: constructResults("and", [9, 10]);
+    return {
+        "SearchTerm": searchTerm,
+        "Results": lines.map(line => ({
+        ISBN: "9780000528531",
+        Page: 31,
+        Line: line
+        }))
+    };
 }
 
-/*
- _   _ _   _ ___ _____   _____ _____ ____ _____ ____  
-| | | | \ | |_ _|_   _| |_   _| ____/ ___|_   _/ ___| 
-| | | |  \| || |  | |     | | |  _| \___ \ | | \___ \ 
-| |_| | |\  || |  | |     | | | |___ ___) || |  ___) |
- \___/|_| \_|___| |_|     |_| |_____|____/ |_| |____/ 
-                                                      
- */
+// One result
+const twentyLeaguesThe = constructResults("the", [9]);
 
-/* We have provided two unit tests. They're really just `if` statements that 
- * output to the console. We've provided two tests as examples, and 
- * they should pass with a correct implementation of `findSearchTermInBooks`. 
- * 
- * Please add your unit tests below.
- * */
-
-/** We can check that, given a known input, we get a known output. */
+// Output
 const test1result = findSearchTermInBooks("the", twentyLeaguesIn);
-if (JSON.stringify(twentyLeaguesOut) === JSON.stringify(test1result)) {
-    console.log("PASS: Test 1");
+if (JSON.stringify(twentyLeaguesThe) === JSON.stringify(test1result)) {
+    console.log("PASS: Output");
 } else {
-    console.log("FAIL: Test 1");
-    console.log("Expected:", twentyLeaguesOut);
+    console.log("FAIL: Output");
+    console.log("Expected:", twentyLeaguesThe);
     console.log("Received:", test1result);
 }
 
-/** We could choose to check that we get the right number of results. */
-const test2result = findSearchTermInBooks("the", twentyLeaguesIn); 
+// Length
+const test2result = findSearchTermInBooks("the", twentyLeaguesIn);
 if (test2result.Results.length == 1) {
-    console.log("PASS: Test 2");
+    console.log("PASS: Length");
 } else {
-    console.log("FAIL: Test 2");
-    console.log("Expected:", twentyLeaguesOut.Results.length);
+    console.log("FAIL: Length");
+    console.log("Expected:", twentyLeaguesThe.Results.length);
     console.log("Received:", test2result.Results.length);
+}
+
+// Multiple
+const twentyLeaguesAnd = constructResults("and", [9, 10]);
+
+const test3result = findSearchTermInBooks("and", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesAnd) === JSON.stringify(test3result)) {
+    console.log("PASS: Multiple");
+} else {
+    console.log("FAIL: Multiple");
+    console.log("Expected:", twentyLeaguesAnd);
+    console.log("Received:", test3result);
+}
+
+// Negative
+const twentyLeaguesNone = constructResults("eggplant", []);
+
+const test4result = findSearchTermInBooks("eggplant", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesNone) === JSON.stringify(test4result)) {
+    console.log("PASS: No results");
+} else {
+    console.log("FAIL: No results");
+    console.log("Expected:", twentyLeaguesNone);
+    console.log("Received:", test4result);
+}
+
+// Case-sensitive
+const twentyLeaguesSensitive = constructResults("The", [8]);
+
+const test5result = findSearchTermInBooks("The", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesSensitive) === JSON.stringify(test5result)) {
+    console.log("PASS: Case sensitive");
+} else {
+    console.log("FAIL: Case sensitive");
+    console.log("Expected:", twentyLeaguesSensitive);
+    console.log("Received:", test5result);
+}
+
+// Case-insensitive
+const twentyLeaguesInsensitive = constructResults("THE", [8, 9]);
+
+const test6result = findSearchTermInBooks("THE", twentyLeaguesIn, false);
+if (JSON.stringify(twentyLeaguesInsensitive) === JSON.stringify(test6result)) {
+    console.log("PASS: Case insensitive");
+} else {
+    console.log("FAIL: Case insensitive");
+    console.log("Expected:", twentyLeaguesInsensitive);
+    console.log("Received:", test6result);
+}
+
+// Punctuation
+const twentyLeaguesProfound = constructResults("profound", [9]);
+
+const test7result = findSearchTermInBooks("profound", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesProfound) === JSON.stringify(test7result)) {
+    console.log("PASS: Punctuation");
+} else {
+    console.log("FAIL: Punctuation");
+    console.log("Expected:", twentyLeaguesProfound);
+    console.log("Received:", test7result);
+}
+
+// Multiword
+const twentyLeaguesSimplyWentOn = constructResults("simply went on", [8]);
+
+const test8result = findSearchTermInBooks("simply went on", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesSimplyWentOn) === JSON.stringify(test8result)) {
+    console.log("PASS: Multiword");
+} else {
+    console.log("FAIL: Multiword");
+    console.log("Expected:", twentyLeaguesSimplyWentOn);
+    console.log("Received:", test8result);
+}
+
+// Partial word
+const twentyLeaguesHow = constructResults("how", [9, 10]);
+
+const test9result = findSearchTermInBooks("how", twentyLeaguesIn);
+if (JSON.stringify(twentyLeaguesHow) === JSON.stringify(test9result)) {
+    console.log("PASS: Partial word");
+} else {
+    console.log("FAIL: Partial word");
+    console.log("Expected:", twentyLeaguesHow);
+    console.log("Received:", test9result);
+}
+
+// Sad path tests
+
+// Empty search
+const test10result = findSearchTermInBooks("", twentyLeaguesIn);
+if ("Bad search term" === test10result) {
+    console.log("PASS: Empty search");
+} else {
+    console.log("FAIL: Empty search");
+    console.log("Expected:", "Bad search term");
+    console.log("Received:", test10result);
+}
+
+// Null search
+const test11result = findSearchTermInBooks(null, twentyLeaguesIn);
+if ("Bad search term" === test11result) {
+    console.log("PASS: Null search");
+} else {
+    console.log("FAIL: Null search");
+    console.log("Expected:", "Bad search term");
+    console.log("Received:", test11result);
+}
+
+// Null object
+const test12result = findSearchTermInBooks("eggplant", null);
+if ("Bad text object" === test12result) {
+    console.log("PASS: Null object");
+} else {
+    console.log("FAIL: Null object");
+    console.log("Expected:", "Bad text object");
+    console.log("Received:", test12result);
+}
+
+// Bad content
+const badObject = [
+    {
+        "Title": "Twenty Thousand Leagues Under the Sea",
+        "ISBN": "9780000528531",
+        "Content": "now simply went on by her own momentum.  The dark-"
+    }
+]
+
+const test13result = findSearchTermInBooks("eggplant", badObject);
+if ("Bad text object" === test13result) {
+    console.log("PASS: Bad content");
+} else {
+    console.log("FAIL: Bad content");
+    console.log("Expected:", "Bad text object");
+    console.log("Received:", test13result);
+}
+
+// Bad text
+const anotherBadObject = [
+    {
+        "Title": "Twenty Thousand Leagues Under the Sea",
+        "ISBN": "9780000528531",
+        "Content": [
+            { "Text": [] }
+        ] 
+    }
+]
+
+const test14result = findSearchTermInBooks("eggplant", anotherBadObject);
+if ("Bad text object" === test14result) {
+    console.log("PASS: Bad text");
+} else {
+    console.log("FAIL: Bad text");
+    console.log("Expected:", "Bad text object");
+    console.log("Received:", test14result);
 }
