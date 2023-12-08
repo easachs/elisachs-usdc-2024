@@ -1,36 +1,31 @@
-// BookSearch function
+// BOOKSEARCH FUNCTION
+
 function findSearchTermInBooks(searchTerm, scannedTextObj, caseSensitive = true) {
-    // Check for valid searchTerm
-    if (typeof searchTerm !== "string" || searchTerm === "") {
-        return "Bad search term";
-    };
-
-    // Check for valid scannedTextObj
-    if (!Array.isArray(scannedTextObj) || !scannedTextObj.every(isValidBook)) {
-        return "Bad text object";
-    };
-
     // Construct result object
     var result = {
         "SearchTerm": searchTerm,
         "Results": []
     };
 
-    scannedTextObj.forEach(book => { // Iterate through each book
-        book.Content.forEach(content => { // Iterate through book's contents
-            // Check case sensitivity
-            var casedSearch = caseSensitive ? searchTerm : searchTerm.toLowerCase();
-            var casedText = caseSensitive ? content.Text : content.Text.toLowerCase();
+    // Check for valid searchTerm and scannedTextObj
+    if (typeof searchTerm === "string" && searchTerm !== "" &&
+       Array.isArray(scannedTextObj) && scannedTextObj.every(isValidBook)) {
+        scannedTextObj.forEach(book => { // Iterate through each book
+            book.Content.forEach(content => { // Iterate through book's contents
+                // Check case sensitivity
+                var casedSearch = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+                var casedText = caseSensitive ? content.Text : content.Text.toLowerCase();
 
-            if (casedText.includes(casedSearch)) { // Check for search term
-                result.Results.push({ // Add matching results
-                    "ISBN": book.ISBN,
-                    "Page": content.Page,
-                    "Line": content.Line
-                });
-            };
+                if (casedText.includes(casedSearch)) { // Check for search term
+                    result.Results.push({ // Add matching results
+                        "ISBN": book.ISBN,
+                        "Page": content.Page,
+                        "Line": content.Line
+                    });
+                };
+            });
         });
-    });
+    };
     
     return result;
 }
@@ -78,13 +73,20 @@ function constructResults(searchTerm, lines) {
         "Line": line
         }))
     };
-}
+};
+
+function noResults(searchTerm) {
+    return {
+        "SearchTerm": searchTerm,
+        "Results": []
+    };
+};
 
 // One result
 const twentyLeaguesThe = constructResults("the", [9]);
-
 // Output
 const test1result = findSearchTermInBooks("the", twentyLeaguesIn);
+
 if (JSON.stringify(twentyLeaguesThe) === JSON.stringify(test1result)) {
     console.log("PASS: Output");
 } else {
@@ -95,6 +97,7 @@ if (JSON.stringify(twentyLeaguesThe) === JSON.stringify(test1result)) {
 
 // Length
 const test2result = findSearchTermInBooks("the", twentyLeaguesIn);
+
 if (test2result.Results.length == 1) {
     console.log("PASS: Length");
 } else {
@@ -105,8 +108,8 @@ if (test2result.Results.length == 1) {
 
 // Multiple
 const twentyLeaguesAnd = constructResults("and", [9, 10]);
-
 const test3result = findSearchTermInBooks("and", twentyLeaguesIn);
+
 if (JSON.stringify(twentyLeaguesAnd) === JSON.stringify(test3result)) {
     console.log("PASS: Multiple");
 } else {
@@ -117,8 +120,8 @@ if (JSON.stringify(twentyLeaguesAnd) === JSON.stringify(test3result)) {
 
 // Negative
 const twentyLeaguesNone = constructResults("eggplant", []);
-
 const test4result = findSearchTermInBooks("eggplant", twentyLeaguesIn);
+
 if (JSON.stringify(twentyLeaguesNone) === JSON.stringify(test4result)) {
     console.log("PASS: No results");
 } else {
@@ -129,8 +132,8 @@ if (JSON.stringify(twentyLeaguesNone) === JSON.stringify(test4result)) {
 
 // Case-sensitive
 const twentyLeaguesSensitive = constructResults("The", [8]);
-
 const test5result = findSearchTermInBooks("The", twentyLeaguesIn);
+
 if (JSON.stringify(twentyLeaguesSensitive) === JSON.stringify(test5result)) {
     console.log("PASS: Case sensitive");
 } else {
@@ -141,8 +144,8 @@ if (JSON.stringify(twentyLeaguesSensitive) === JSON.stringify(test5result)) {
 
 // Case-insensitive
 const twentyLeaguesInsensitive = constructResults("THE", [8, 9]);
-
 const test6result = findSearchTermInBooks("THE", twentyLeaguesIn, false);
+
 if (JSON.stringify(twentyLeaguesInsensitive) === JSON.stringify(test6result)) {
     console.log("PASS: Case insensitive");
 } else {
@@ -153,8 +156,8 @@ if (JSON.stringify(twentyLeaguesInsensitive) === JSON.stringify(test6result)) {
 
 // Punctuation
 const twentyLeaguesProfound = constructResults("profound", [9]);
-
 const test7result = findSearchTermInBooks("profound", twentyLeaguesIn);
+
 if (JSON.stringify(twentyLeaguesProfound) === JSON.stringify(test7result)) {
     console.log("PASS: Punctuation");
 } else {
@@ -165,8 +168,8 @@ if (JSON.stringify(twentyLeaguesProfound) === JSON.stringify(test7result)) {
 
 // Multiword
 const twentyLeaguesSimplyWentOn = constructResults("simply went on", [8]);
-
 const test8result = findSearchTermInBooks("simply went on", twentyLeaguesIn);
+
 if (JSON.stringify(twentyLeaguesSimplyWentOn) === JSON.stringify(test8result)) {
     console.log("PASS: Multiword");
 } else {
@@ -177,8 +180,8 @@ if (JSON.stringify(twentyLeaguesSimplyWentOn) === JSON.stringify(test8result)) {
 
 // Partial word
 const twentyLeaguesHow = constructResults("how", [9, 10]);
-
 const test9result = findSearchTermInBooks("how", twentyLeaguesIn);
+
 if (JSON.stringify(twentyLeaguesHow) === JSON.stringify(test9result)) {
     console.log("PASS: Partial word");
 } else {
@@ -190,32 +193,38 @@ if (JSON.stringify(twentyLeaguesHow) === JSON.stringify(test9result)) {
 // Sad path tests
 
 // Empty search
+const emptySearch = noResults("");
 const test10result = findSearchTermInBooks("", twentyLeaguesIn);
-if ("Bad search term" === test10result) {
+
+if (JSON.stringify(emptySearch) === JSON.stringify(test10result)) {
     console.log("PASS: Empty search");
 } else {
     console.log("FAIL: Empty search");
-    console.log("Expected:", "Bad search term");
+    console.log("Expected:", emptySearch);
     console.log("Received:", test10result);
 }
 
 // Null search
+const nullSearch = noResults(null);
 const test11result = findSearchTermInBooks(null, twentyLeaguesIn);
-if ("Bad search term" === test11result) {
+
+if (JSON.stringify(nullSearch) === JSON.stringify(test11result)) {
     console.log("PASS: Null search");
 } else {
     console.log("FAIL: Null search");
-    console.log("Expected:", "Bad search term");
+    console.log("Expected:", nullSearch);
     console.log("Received:", test11result);
 }
 
 // Null object
+const nullObject = noResults("eggplant");
 const test12result = findSearchTermInBooks("eggplant", null);
-if ("Bad text object" === test12result) {
+
+if (JSON.stringify(nullObject) === JSON.stringify(test12result)) {
     console.log("PASS: Null object");
 } else {
     console.log("FAIL: Null object");
-    console.log("Expected:", "Bad text object");
+    console.log("Expected:", nullObject);
     console.log("Received:", test12result);
 }
 
@@ -226,14 +235,16 @@ const badObject = [
         "ISBN": "9780000528531",
         "Content": "now simply went on by her own momentum.  The dark-"
     }
-]
+];
 
+const badContent = noResults("eggplant");
 const test13result = findSearchTermInBooks("eggplant", badObject);
-if ("Bad text object" === test13result) {
+
+if (JSON.stringify(badContent) === JSON.stringify(test13result)) {
     console.log("PASS: Bad content");
 } else {
     console.log("FAIL: Bad content");
-    console.log("Expected:", "Bad text object");
+    console.log("Expected:", badContent);
     console.log("Received:", test13result);
 }
 
@@ -246,14 +257,16 @@ const anotherBadObject = [
             { "Text": [] }
         ] 
     }
-]
+];
 
+const moreBadContent = noResults("eggplant");
 const test14result = findSearchTermInBooks("eggplant", anotherBadObject);
-if ("Bad text object" === test14result) {
+
+if (JSON.stringify(moreBadContent) === JSON.stringify(test14result)) {
     console.log("PASS: Bad text");
 } else {
     console.log("FAIL: Bad text");
-    console.log("Expected:", "Bad text object");
+    console.log("Expected:", moreBadContent);
     console.log("Received:", test14result);
 }
 
@@ -291,6 +304,7 @@ multipleResults.Results.push({
 });
 
 const test15result = findSearchTermInBooks("and", multipleBooks);
+
 if (JSON.stringify(multipleResults) === JSON.stringify(test15result)) {
     console.log("PASS: Multiple books");
 } else {
@@ -300,12 +314,9 @@ if (JSON.stringify(multipleResults) === JSON.stringify(test15result)) {
 }
 
 // No books
-const noBooks = {
-    "SearchTerm": "and",
-    "Results": []
-}
-
+const noBooks = noResults("and");
 const test16result = findSearchTermInBooks("and", []);
+
 if (JSON.stringify(noBooks) === JSON.stringify(test16result)) {
     console.log("PASS: No books");
 } else {
