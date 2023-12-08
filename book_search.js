@@ -22,7 +22,7 @@ function findSearchTermInBooks(searchTerm, scannedTextObj, caseSensitive = true)
             var casedSearch = caseSensitive ? searchTerm : searchTerm.toLowerCase();
             var casedText = caseSensitive ? content.Text : content.Text.toLowerCase();
 
-            if(casedText.includes(casedSearch)){ // Check for search term
+            if (casedText.includes(casedSearch)) { // Check for search term
                 result.Results.push({ // Add matching results
                     "ISBN": book.ISBN,
                     "Page": content.Page,
@@ -73,9 +73,9 @@ function constructResults(searchTerm, lines) {
     return {
         "SearchTerm": searchTerm,
         "Results": lines.map(line => ({
-        ISBN: "9780000528531",
-        Page: 31,
-        Line: line
+        "ISBN": "9780000528531",
+        "Page": 31,
+        "Line": line
         }))
     };
 }
@@ -255,4 +255,82 @@ if ("Bad text object" === test14result) {
     console.log("FAIL: Bad text");
     console.log("Expected:", "Bad text object");
     console.log("Received:", test14result);
+}
+
+// Multiple books
+const monteCristo = {
+    "Title": "The Count of Monte Cristo",
+    "ISBN": "9781593080884",
+    "Content": [
+        {
+            "Page":618,
+            "Line": 18,
+            "Text": '"My dear," replied Valentine, "has not the count just'
+        },
+        {
+            "Page": 618,
+            "Line": 19,
+            "Text": "told us that all human wisdom is contained in the words"
+        },
+        {
+            "Page": 618,
+            "Line": 20,
+            "Text": "'Wait and Hope!'\""
+        } 
+    ] 
+}
+
+const multipleBooks = [ ...twentyLeaguesIn ];
+multipleBooks.push(monteCristo);
+
+const multipleResults = { ...twentyLeaguesAnd };
+multipleResults.Results.push({
+    ISBN: "9781593080884",
+    Page: 618,
+    Line: 20
+});
+
+const test15result = findSearchTermInBooks("and", multipleBooks);
+if (JSON.stringify(multipleResults) === JSON.stringify(test15result)) {
+    console.log("PASS: Multiple books");
+} else {
+    console.log("FAIL: Multiple books");
+    console.log("Expected:", multipleResults);
+    console.log("Received:", test15result);
+}
+
+// No books
+const noBooks = {
+    "SearchTerm": "and",
+    "Results": []
+}
+
+const test16result = findSearchTermInBooks("and", []);
+if (JSON.stringify(noBooks) === JSON.stringify(test16result)) {
+    console.log("PASS: No books");
+} else {
+    console.log("FAIL: No books");
+    console.log("Expected:", noBooks);
+    console.log("Received:", test16result);
+}
+
+// ConstructResults function
+const twentyLeaguesOut = {
+    "SearchTerm": "the",
+    "Results": [
+        {
+            "ISBN": "9780000528531",
+            "Page": 31,
+            "Line": 9
+        }
+    ]
+}
+
+const test17result = constructResults("the", [9]);
+if (JSON.stringify(twentyLeaguesOut) === JSON.stringify(test17result)) {
+    console.log("PASS: Construct results");
+} else {
+    console.log("FAIL: Construct results");
+    console.log("Expected:", twentyLeaguesOut);
+    console.log("Received:", test17result);
 }
